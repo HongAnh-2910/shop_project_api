@@ -4,6 +4,8 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidateAuthRequest;
+use App\Http\Requests\ValidateChangePasswordRequest;
+use App\Http\Requests\ValidateLoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -49,18 +51,10 @@ class JWTAuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(ValidateLoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        if ( ! $token = auth()->attempt($validator->validated())) {
+        if ( ! $token = auth()->attempt($request->all())) {
             return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
         } else {
             $user    = Auth::user();
@@ -90,7 +84,7 @@ class JWTAuthController extends Controller
     {
         auth()->logout();
 
-        return response()->json(['message' => 'Bạn đã đăng xuất thành công'] ,201);
+        return response()->json(['message' => 'Bạn đã đăng xuất thành công'], 201);
     }
 
     /**
@@ -107,26 +101,16 @@ class JWTAuthController extends Controller
      * @param Request $request
      */
 
-    public function changePassword(Request $request)
+    public function changePassword(ValidateChangePasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'password_old'          => 'required',
-            'password'              => 'required|confirmed',
-            'password_confirmation' => 'required'
-        ]);
-        if($validator->fails())
-        {
-            return response()->json($validator->errors(), 422);
-        }
-
         if (Hash::check($request->input('password_old'), Auth::user()->password)) {
             User::where('id', Auth::user()->id)->update([
                 'password' => Hash::make($request->input('password')),
             ]);
 
-            return response()->json(['messages' => 'Bạn đã đổi mật khẩu thành công'],201);
+            return response()->json(['messages' => 'Bạn đã đổi mật khẩu thành công'], 201);
         } else {
-            return response()->json(['error' => 'Nhập lại mật khẩu cũ không trùng khớp'],422);
+            return response()->json(['error' => 'Nhập lại mật khẩu cũ không trùng khớp'], 422);
         }
     }
 
@@ -145,6 +129,6 @@ class JWTAuthController extends Controller
             'message'      => $message,
             'token_type'   => 'bearer',
             'expires_in'   => auth()->factory()->getTTL() * 60
-        ] ,201);
+        ], 201);
     }
 }
