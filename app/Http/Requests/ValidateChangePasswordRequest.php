@@ -27,8 +27,7 @@ class ValidateChangePasswordRequest extends FormRequest
     {
         return [
             'password_old'          => 'required',
-            'password'              => 'required|confirmed',
-            'password_confirmation' => 'required'
+            'password'              => 'required',
             //
         ];
     }
@@ -38,8 +37,6 @@ class ValidateChangePasswordRequest extends FormRequest
         return [
             'password_old.required' => 'Mật khẩu cũ không được để trống',
             'password.required'     => 'Mật khẩu mới không được để trống',
-            'password_confirmation' => 'Nhập lại mật khẩu mới không được để trống',
-            'password.confirmed'    => 'Xác nhận mật khẩu không khớp'
             //
         ];
     }

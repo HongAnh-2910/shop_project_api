@@ -30,8 +30,7 @@ class ValidateAuthRequest extends FormRequest
             'email'                 => 'required|email|unique:users|max:50',
             'phone'                 => 'required|numeric',
             'address'               => 'required',
-            'password'              => 'required|confirmed|string|min:6',
-            'password_confirmation' => 'required'
+            'password'              => 'required|string|min:6',
         ];
     }
 
@@ -48,7 +47,6 @@ class ValidateAuthRequest extends FormRequest
             'phone.required'                 => 'Số điện thoại không được để trống',
             'phone.regex'                    => 'Số điện thoại không đúng định dạng',
             'address.required'               => 'Địa chỉ không được để trống',
-            'password_confirmation.required' => 'Nhâp lại mật khẩu không được để trống'
             //
         ];
     }
