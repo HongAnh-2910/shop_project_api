@@ -26,32 +26,35 @@ class ValidateAuthRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'     => 'required|between:2,100',
-            'email'    => 'required|email|unique:users|max:50',
-            'password' => 'required|confirmed|string|min:6',
-            'phone'    => 'required|numeric',
+            'name'                  => 'required|between:2,100',
+            'email'                 => 'required|email|unique:users|max:50',
+            'phone'                 => 'required|numeric',
+            'address'               => 'required',
+            'password'              => 'required|confirmed|string|min:6',
+            'password_confirmation' => 'required'
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required'              => 'Họ và tên không được để trống',
-            'email.required'             => 'Email không được để trống',
-            'email.email'                => 'Bạn nhập sai định dạng email',
-            'email.unique'               => 'Email này đã tồn tại',
-            'password.confirmed'         => 'Xác nhận mật khẩu không khớp',
-            'password.min'               => 'Nhập khẩu lớn hơn 6 ký tự',
-            'password.required'          => 'Mật khẩu không được để trống',
-            'phone.required'             => 'Số điện thoại không được để trống',
-            'phone.regex'                => 'Số điện thoại không đúng định dạng',
-            'address'                    => 'Địa chỉ không được để trống'
+            'name.required'                  => 'Họ và tên không được để trống',
+            'email.required'                 => 'Email không được để trống',
+            'email.email'                    => 'Bạn nhập sai định dạng email',
+            'email.unique'                   => 'Email này đã tồn tại',
+            'password.confirmed'             => 'Xác nhận mật khẩu không khớp',
+            'password.min'                   => 'Nhập khẩu lớn hơn 6 ký tự',
+            'password.required'              => 'Mật khẩu không được để trống',
+            'phone.required'                 => 'Số điện thoại không được để trống',
+            'phone.regex'                    => 'Số điện thoại không đúng định dạng',
+            'address.required'               => 'Địa chỉ không được để trống',
+            'password_confirmation.required' => 'Nhâp lại mật khẩu không được để trống'
             //
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([$validator->errors()] , 422));
+        throw new HttpResponseException(response()->json([$validator->errors()], 422));
     }
 }
