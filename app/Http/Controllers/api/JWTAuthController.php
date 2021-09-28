@@ -5,11 +5,16 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidateAuthRequest;
 use App\Http\Requests\ValidateChangePasswordRequest;
+use App\Http\Requests\ValidateForgetPass;
 use App\Http\Requests\ValidateLoginRequest;
+use App\Http\Requests\ValidateRestPassword;
+use App\Mail\ForgetPassword;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Validator;
 use App\User;
 
@@ -22,7 +27,7 @@ class JWTAuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register' , 'forgetPassword']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register' , 'forgetPassword' ,'restPassword']]);
     }
 
     /**
@@ -118,7 +123,9 @@ class JWTAuthController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param ValidateChangePasswordRequest $request
+     *
+     * @return JsonResponse
      */
 
     public function changePassword(ValidateChangePasswordRequest $request)
@@ -136,20 +143,52 @@ class JWTAuthController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param ValidateForgetPass $request
+     *
+     * @return JsonResponse
      */
 
-    public function forgetPassword(Request $request)
+    public function forgetPassword(ValidateForgetPass $request)
     {
-        $user_check = User::where('email', '=' , $request->input('email'))->get();
+        $user_check = User::where('email', '=' , $request->input('email'))->first();
         $user_count =  $user_check->count();
         if($user_count == 0)
         {
             return response()->json(['message' => 'Email chưa được đăng ký'] , 422);
         }else
         {
-
+            $str_random =Str::random(60);
+             User::where('id' , $user_check->id)->update([
+                'remember_token' => $str_random,
+            ]);
+             $link_rest_pass = url('/update_new_pass?email='.$request->input('email').'&token='.$str_random);
+             $data = array($link_rest_pass);
+            Mail::to($request->input('email'))->send(new ForgetPassword($data));
         }
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return mixed
+     */
+
+    public function restPassword(ValidateRestPassword $request)
+    {
+         $rest_password = User::where('remember_token' , '=' , $request->input('token'))->where('remember_token' , '<>' , null)->first();
+         if($rest_password)
+         {
+             $update_password = User::where('id' , $rest_password->id)->update([
+                 'password' => Hash::make($request->input('password'))
+             ]);
+             if($update_password)
+             {
+                 return response()->json(['message' , 'Bạn đã lấy lại mật khẩu thành công'] , 201);
+             }
+         }else
+         {
+             return response()->json(['error' , 'Bạn đã lấy lại mật khẩu thất bại'] , 404);
+         }
     }
 
     /**
