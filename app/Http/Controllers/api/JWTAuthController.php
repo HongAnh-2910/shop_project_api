@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidateAuthRequest;
 use App\Http\Requests\ValidateChangePasswordRequest;
 use App\Http\Requests\ValidateLoginRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -21,13 +22,13 @@ class JWTAuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register' , 'forgetPassword']]);
     }
 
     /**
      * Register a User.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function register(ValidateAuthRequest $request)
     {
@@ -49,25 +50,44 @@ class JWTAuthController extends Controller
     /**
      * Get a JWT via given credentials.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function login(ValidateLoginRequest $request)
     {
+        if(is_numeric($request->get('loginKey'))){
+            $info_login =  ['phone'=>$request->get('loginKey'),'password'=>$request->get('password')];
+            if ( ! $token = auth()->attempt($info_login)) {
+                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
+            } else {
+                $user    = Auth::user();
+                $massage = 'Bạn đã đăng nhập thành công';
 
-        if ( ! $token = auth()->attempt($request->all())) {
-            return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
-        } else {
-            $user    = Auth::user();
-            $massage = 'Bạn đã đăng nhập thành công';
+                return $this->createNewToken($token, $user, $massage);
+            }
 
-            return $this->createNewToken($token, $user, $massage);
         }
+        else if (filter_var($request->get('loginKey'), FILTER_VALIDATE_EMAIL)) {
+            $info_login = ['email' => $request->get('loginKey'), 'password'=>$request->get('password')];
+            if ( ! $token = auth()->attempt($info_login)) {
+                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
+            } else {
+                $user    = Auth::user();
+                $massage = 'Bạn đã đăng nhập thành công';
+
+                return $this->createNewToken($token, $user, $massage);
+            }
+            }else
+            {
+                return response()->json(['error' => 'Bạn nhập sai định dạng email'], 401);
+            }
+//        return ['username' => $request->get('email'), 'password'=>$request->get('password')];
+
     }
 
     /**
      * Get the authenticated User.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function profile()
     {
@@ -78,7 +98,7 @@ class JWTAuthController extends Controller
     /**
      * Log the user out (Invalidate the token).
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function logout()
     {
@@ -90,7 +110,7 @@ class JWTAuthController extends Controller
     /**
      * Refresh a token.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function refresh()
     {
@@ -109,8 +129,26 @@ class JWTAuthController extends Controller
             ]);
 
             return response()->json(['messages' => 'Bạn đã đổi mật khẩu thành công'], 201);
-        } else {
+        } else
+        {
             return response()->json(['error' => 'Nhập lại mật khẩu cũ không trùng khớp'], 422);
+        }
+    }
+
+    /**
+     * @param Request $request
+     */
+
+    public function forgetPassword(Request $request)
+    {
+        $user_check = User::where('email', '=' , $request->input('email'))->get();
+        $user_count =  $user_check->count();
+        if($user_count == 0)
+        {
+            return response()->json(['message' => 'Email chưa được đăng ký'] , 422);
+        }else
+        {
+
         }
     }
 
@@ -119,7 +157,7 @@ class JWTAuthController extends Controller
      *
      * @param string $token
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     protected function createNewToken($token, $user, $message)
     {

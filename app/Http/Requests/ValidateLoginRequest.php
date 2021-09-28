@@ -26,7 +26,7 @@ class ValidateLoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'email'    => 'required|email',
+            'loginKey'    => 'required',
             'password' => 'required',
             //
         ];
@@ -35,7 +35,7 @@ class ValidateLoginRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.required'    => 'Địa chỉ email không được để trống',
+            'loginKey.required'    => 'Địa chỉ email hoặc số điện thoại không được để trống',
             'email.email'       => 'Bạn nhập sai định dạng email',
             'password.required' => 'Mật khẩu không được để trống',
             //

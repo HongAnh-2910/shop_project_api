@@ -30,5 +30,6 @@ Route::group([
     Route::post('refresh', 'api\JWTAuthController@refresh');
     Route::get('profile', 'api\JWTAuthController@profile');
     Route::patch('change_password', 'api\JWTAuthController@changePassword');
+    Route::patch('forget_password', 'api\JWTAuthController@forgetPassword');
 
 });

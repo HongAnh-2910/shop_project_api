@@ -27,8 +27,8 @@ class ValidateAuthRequest extends FormRequest
     {
         return [
             'name'                  => 'required|between:2,100',
-            'email'                 => 'required|email|unique:users|max:50',
-            'phone'                 => 'required|numeric',
+            'email'                 => 'required|email|unique:users,email|max:50',
+            'phone'                 => 'required|unique:users,phone|numeric',
             'address'               => 'required',
             'password'              => 'required|string|min:6',
         ];
@@ -45,7 +45,7 @@ class ValidateAuthRequest extends FormRequest
             'password.min'                   => 'Nhập khẩu lớn hơn 6 ký tự',
             'password.required'              => 'Mật khẩu không được để trống',
             'phone.required'                 => 'Số điện thoại không được để trống',
-            'phone.regex'                    => 'Số điện thoại không đúng định dạng',
+            'phone.unique'                   => 'Số điện thoại đã tồn tại',
             'address.required'               => 'Địa chỉ không được để trống',
             //
         ];
