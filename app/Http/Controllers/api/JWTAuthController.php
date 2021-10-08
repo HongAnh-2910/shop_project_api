@@ -27,7 +27,7 @@ class JWTAuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register' , 'forgetPassword' ,'restPassword']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'forgetPassword', 'restPassword']]);
     }
 
     /**
@@ -59,8 +59,8 @@ class JWTAuthController extends Controller
      */
     public function login(ValidateLoginRequest $request)
     {
-        if(is_numeric($request->get('loginKey'))){
-            $info_login =  ['phone'=>$request->get('loginKey'),'password'=>$request->get('password')];
+        if (is_numeric($request->get('loginKey'))) {
+            $info_login = ['phone' => $request->get('loginKey'), 'password' => $request->get('password')];
             if ( ! $token = auth()->attempt($info_login)) {
                 return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
             } else {
@@ -70,21 +70,19 @@ class JWTAuthController extends Controller
                 return $this->createNewToken($token, $user, $massage);
             }
 
+        } else if (filter_var($request->get('loginKey'), FILTER_VALIDATE_EMAIL)) {
+            $info_login = ['email' => $request->get('loginKey'), 'password' => $request->get('password')];
+            if ( ! $token = auth()->attempt($info_login)) {
+                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
+            } else {
+                $user    = Auth::user();
+                $massage = 'Bạn đã đăng nhập thành công';
+
+                return $this->createNewToken($token, $user, $massage);
+            }
+        } else {
+            return response()->json(['error' => 'Bạn nhập sai định dạng email'], 401);
         }
-        else if (filter_var($request->get('loginKey'), FILTER_VALIDATE_EMAIL)) {
-            $info_login = ['email' => $request->get('loginKey'), 'password'=>$request->get('password')];
-            if ( ! $token = auth()->attempt($info_login)) {
-                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
-            } else {
-                $user    = Auth::user();
-                $massage = 'Bạn đã đăng nhập thành công';
-
-                return $this->createNewToken($token, $user, $massage);
-            }
-            }else
-            {
-                return response()->json(['error' => 'Bạn nhập sai định dạng email'], 401);
-            }
 //        return ['username' => $request->get('email'), 'password'=>$request->get('password')];
 
     }
@@ -136,8 +134,7 @@ class JWTAuthController extends Controller
             ]);
 
             return response()->json(['messages' => 'Bạn đã đổi mật khẩu thành công'], 201);
-        } else
-        {
+        } else {
             return response()->json(['error' => 'Nhập lại mật khẩu cũ không trùng khớp'], 422);
         }
     }
@@ -150,45 +147,45 @@ class JWTAuthController extends Controller
 
     public function forgetPassword(ValidateForgetPass $request)
     {
-        $user_check = User::where('email', '=' , $request->input('email'))->first();
-        $user_count =  $user_check->count();
-        if($user_count == 0)
-        {
-            return response()->json(['message' => 'Email chưa được đăng ký'] , 422);
-        }else
-        {
-            $str_random =Str::random(60);
-             User::where('id' , $user_check->id)->update([
+        $user_check = User::where('email', '=', $request->input('email'))->first();
+        $user_count = $user_check->count();
+        if ($user_count == 0) {
+            return response()->json(['message' => 'Email chưa được đăng ký'], 422);
+        } else {
+            $str_random = Str::random(60);
+            User::where('id', $user_check->id)->update([
                 'remember_token' => $str_random,
             ]);
-             $link_rest_pass = url('/update_new_pass?email='.$request->input('email').'&token='.$str_random);
-             $data = array($link_rest_pass);
+            $link_rest_pass = url('/update_new_pass?email=' . $request->input('email') . '&token=' . $str_random);
+            $data           = array($link_rest_pass);
             Mail::to($request->input('email'))->send(new ForgetPassword($data));
         }
     }
 
     /**
-     * @param Request $request
+     * @param ValidateRestPassword $request
      *
-     * @return mixed
+     * @return JsonResponse
      */
 
     public function restPassword(ValidateRestPassword $request)
     {
-         $rest_password = User::where('remember_token' , '=' , $request->input('token'))->where('remember_token' , '<>' , null)->first();
-         if($rest_password)
-         {
-             $update_password = User::where('id' , $rest_password->id)->update([
-                 'password' => Hash::make($request->input('password'))
-             ]);
-             if($update_password)
-             {
-                 return response()->json(['message' , 'Bạn đã lấy lại mật khẩu thành công'] , 201);
-             }
-         }else
-         {
-             return response()->json(['error' , 'Bạn đã lấy lại mật khẩu thất bại'] , 404);
-         }
+        $rest_password = User::where('remember_token', '=', $request->input('token'))->where('remember_token', '<>',
+            null)->first();
+        if ($rest_password) {
+            $update_password = User::where('id', $rest_password->id)->update([
+                'password' => Hash::make($request->input('password'))
+            ]);
+            if ($update_password) {
+                $remember_token = User::where('id', $rest_password->id)->update([
+                    'remember_token' => null
+                ]);
+
+                return response()->json(['message', 'Bạn đã lấy lại mật khẩu thành công'], 201);
+            }
+        } else {
+            return response()->json(['error', 'Bạn đã lấy lại mật khẩu thất bại'], 422);
+        }
     }
 
     /**

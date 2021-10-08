@@ -34,3 +34,7 @@ Route::group([
     Route::post('rest_password', 'api\JWTAuthController@restPassword');
 
 });
+
+    Route::resource('categorys', 'api\CategorysController');
+    Route::post('categorys/update/{id}', 'api\CategorysController@update');
+    Route::delete('categorys/delete/{id}', 'api\CategorysController@delete');
