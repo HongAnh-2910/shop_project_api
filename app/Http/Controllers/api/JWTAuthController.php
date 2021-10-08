@@ -62,7 +62,7 @@ class JWTAuthController extends Controller
         if (is_numeric($request->get('loginKey'))) {
             $info_login = ['phone' => $request->get('loginKey'), 'password' => $request->get('password')];
             if ( ! $token = auth()->attempt($info_login)) {
-                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
+                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 422);
             } else {
                 $user    = Auth::user();
                 $massage = 'Bạn đã đăng nhập thành công';
@@ -73,7 +73,7 @@ class JWTAuthController extends Controller
         } else if (filter_var($request->get('loginKey'), FILTER_VALIDATE_EMAIL)) {
             $info_login = ['email' => $request->get('loginKey'), 'password' => $request->get('password')];
             if ( ! $token = auth()->attempt($info_login)) {
-                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 401);
+                return response()->json(['error' => 'Bạn nhập sai tài khoản hoặc mật khẩu'], 422);
             } else {
                 $user    = Auth::user();
                 $massage = 'Bạn đã đăng nhập thành công';
@@ -81,7 +81,7 @@ class JWTAuthController extends Controller
                 return $this->createNewToken($token, $user, $massage);
             }
         } else {
-            return response()->json(['error' => 'Bạn nhập sai định dạng email'], 401);
+            return response()->json(['error' => 'Bạn nhập sai định dạng email'], 422);
         }
 //        return ['username' => $request->get('email'), 'password'=>$request->get('password')];
 
