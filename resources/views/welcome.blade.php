@@ -8,7 +8,7 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;600&display=swap" rel="stylesheet">
-
+       <img width="100px" height="200px" src={{url('public/uploads/img1.jpg')}}>
         <!-- Styles -->
         <style>
             html, body {

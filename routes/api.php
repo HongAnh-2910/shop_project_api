@@ -35,6 +35,6 @@ Route::group([
 
 });
 
-    Route::resource('categorys', 'api\CategorysController');
-    Route::post('categorys/update/{id}', 'api\CategorysController@update');
-    Route::delete('categorys/delete/{id}', 'api\CategorysController@delete');
+    Route::resource('category', 'api\CategoryController');
+    Route::post('category/update/{id}', 'api\CategoryController@update');
+    Route::delete('category/delete/{id}', 'api\CategoryController@delete');

@@ -8,7 +8,7 @@ use App\Http\Requests\ValidateCategoryRequest;
 use App\Http\Requests\ValidateUpadteCategoryRequest;
 use Illuminate\Http\Request;
 
-class CategorysController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -45,10 +45,10 @@ class CategorysController extends Controller
 
     public function store(ValidateCategoryRequest $request)
     {
-        $thumbnail =  uploadImg($request , 'public/uploads');
+        $thumbnail =  uploadImg($request , public_path().'/uploads');
         Category::create([
             'name_category' => $request->input('name_category'),
-            'img' => url('public/uploads/'.$thumbnail),
+            'img' => url('uploads/'.$thumbnail),
             'parent_id' => $request->input('parent_id')
         ]);
 
