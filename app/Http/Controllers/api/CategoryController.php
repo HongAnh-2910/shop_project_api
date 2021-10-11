@@ -6,27 +6,42 @@ use App\Category;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidateCategoryRequest;
 use App\Http\Requests\ValidateUpadteCategoryRequest;
+use App\Http\Resources\CategoryProduct;
+use App\Repositories\CategoryProduct\CategoryProductRepositories;
+use App\Services\CategoryProductService;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
+    protected $category_product_repositories;
+    protected $category_product_service;
+
+    /**
+     * CategoryController constructor.
+     *
+     * @param CategoryProductRepositories $category_product_repositories
+     * @param CategoryProductService $category_product_service
+     */
+
+    public function __construct(
+        CategoryProductRepositories $category_product_repositories,
+        CategoryProductService $category_product_service
+    ) {
+        $this->category_product_repositories = $category_product_repositories;
+        $this->category_product_service      = $category_product_service;
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
+
     public function index(Request $request)
     {
-        $search = '';
-        if($request->input('search'))
-        {
-            $search =  $request->input('search');
-        }
-        $list_category =  Category::with('category_child')
-                                  ->where('name_category', 'LIKE' , "%{$search}%")
-                                  ->paginate();
-        return response()->json($list_category , 201);
-        //
+        $list_category = $this->category_product_repositories->getAllCategory($request);
+
+        return CategoryProduct::collection($list_category);
     }
 
     /**
@@ -45,12 +60,12 @@ class CategoryController extends Controller
 
     public function store(ValidateCategoryRequest $request)
     {
-        $thumbnail =  uploadImg($request , public_path().'/uploads');
-        Category::create([
-            'name_category' => $request->input('name_category'),
-            'img' => url('uploads/'.$thumbnail),
-            'parent_id' => $request->input('parent_id')
-        ]);
+        $thumbnail               = uploadImg($request, public_path() . '/uploads/');
+        $create_category_product = $this->category_product_repositories->create($thumbnail, $request);
+
+        return $create_category_product ? $this->responseSuccess(null,
+            'Bạn đã thêm danh mục thành công') : $this->responseError(null, 'Bạn đã thêm danh mục thất bại',
+            self::STATUS_ERROR_WITH_MESSAGE);
 
         //
     }
@@ -58,20 +73,22 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
 
     public function show($id)
     {
-        return response()->json(Category::find($id) , 201);
+        return new CategoryProduct(Category::find($id));
         //
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -79,46 +96,22 @@ class CategoryController extends Controller
         //
     }
 
+
     /**
-     * Update the specified resource in storage.
+     * @param ValidateUpadteCategoryRequest $request
+     * @param $id
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
+
     public function update(ValidateUpadteCategoryRequest $request, $id)
     {
-        $cate_item = Category::find(5);
-        $thumbnail =  uploadImg($request , 'public/uploads');
-        if(!empty($thumbnail))
-        {
-           $update_cate = Category::where('id' , $id)->update([
-                'name_category' => $request->input('name_category'),
-                'img' => url('public/uploads/'.$thumbnail),
-                'parent_id' => $request->input('parent_id')
-            ]);
-           if($update_cate)
-           {
-               return response()->json(['message' => 'Bạn đã cập nhật danh mục thành công'], 201);
-           }else
-           {
-               return response()->json(['message' => 'Bạn đã cập nhật danh mục thất bại'], 422);
-           }
-        }else
-        {
-            $update_cate = Category::where('id' , $id)->update([
-                'name_category' => $request->input('name_category'),
-                'img' => $cate_item->img,
-                'parent_id' => $request->input('parent_id')
-            ]);
-            if($update_cate)
-            {
-                return response()->json(['message' => 'Bạn đã cập nhật danh mục thành công'], 201);
-            }else
-            {
-                return response()->json(['message' => 'Bạn đã cập nhật danh mục thất bại'], 422);
-            }
-        }
+        $cate_item = Category::find($id);
+        $thumbnail = uploadImg($request, 'public/uploads');
+        $isUpdated = $this->category_product_service->updateCategory($thumbnail, $id, $cate_item, $request);
+
+        return $isUpdated ? $this->responseSuccess(null, 'Bạn đã cập nhật danh mục thành công') : $this->responseError(null,
+            'Bạn cập nhật danh mục thất bại', self::STATUS_ERROR_WITH_MESSAGE);
     }
 
     /**
@@ -126,33 +119,27 @@ class CategoryController extends Controller
      * @param $id
      */
 
-    public function delete(Request $request , $id)
+    public function delete($id)
     {
-       $delete_item =  Category::find($id)->delete();
-       if($delete_item)
-       {
-           return response()->json(['message' => 'Bạn đã xóa danh mục thành công'], 201);
-       }else
-       {
-           return response()->json(['error' => 'Bạn đã xóa danh mục thất bại'], 422);
-       }
+        $delete_item = $this->category_product_repositories->delete($id);
+
+        return $delete_item ? $this->responseSuccess(null, 'Bạn đã xóa danh mục thành công') : $this->responseError(null,
+            'Bạn đã xóa danh mục thất bại', self::STATUS_ERROR_WITH_MESSAGE);
+
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $destroy_item = Category::withTrashed()->where('id' , $id)->forceDelete();
-        if($destroy_item)
-        {
-            return response()->json(['message' => 'Bạn đã xóa vĩnh viễn danh mục thành công'], 201);
-        }else
-        {
-            return response()->json(['error' => 'Bạn đã xóa vĩnh viễn danh mục thất bại'], 422);
-        }
+        $destroy_item = $this->category_product_repositories->destroy($id);
+        return $destroy_item ?$this->responseSuccess(null,
+            'Bạn đã xóa vĩnh viễn thành công') : $this->responseError(null, 'Bạn đã xóa vĩnh viễn thất bại',
+            self::STATUS_ERROR_WITH_MESSAGE);
     }
 }
