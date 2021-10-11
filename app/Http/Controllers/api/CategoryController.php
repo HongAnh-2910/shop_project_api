@@ -45,7 +45,7 @@ class CategoryController extends Controller
 
     public function store(ValidateCategoryRequest $request)
     {
-        $thumbnail =  uploadImg($request , public_path().'/uploads');
+        $thumbnail =  uploadImg($request , public_path().'/uploads/');
         Category::create([
             'name_category' => $request->input('name_category'),
             'img' => url('uploads/'.$thumbnail),
