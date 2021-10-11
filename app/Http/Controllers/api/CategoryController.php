@@ -60,21 +60,13 @@ class CategoryController extends BaseController
 
     public function store(ValidateCategoryRequest $request)
     {
-<<<<<<< HEAD
-        $thumbnail =  uploadImg($request , public_path().'/uploads/');
-        Category::create([
-            'name_category' => $request->input('name_category'),
-            'img' => url('uploads/'.$thumbnail),
-            'parent_id' => $request->input('parent_id')
-        ]);
-=======
+
         $thumbnail               = uploadImg($request, public_path() . '/uploads/');
         $create_category_product = $this->category_product_repositories->create($thumbnail, $request);
 
         return $create_category_product ? $this->responseSuccess(null,
             'Bạn đã thêm danh mục thành công') : $this->responseError(null, 'Bạn đã thêm danh mục thất bại',
             self::STATUS_ERROR_WITH_MESSAGE);
->>>>>>> 204ee975e13fefee4d5e8bdd341df8e016005106
 
         //
     }
