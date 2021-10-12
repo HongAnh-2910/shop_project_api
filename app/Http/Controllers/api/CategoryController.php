@@ -60,6 +60,7 @@ class CategoryController extends BaseController
 
     public function store(ValidateCategoryRequest $request)
     {
+
         $thumbnail               = uploadImg($request, public_path() . '/uploads/');
         $create_category_product = $this->category_product_repositories->create($thumbnail, $request);
 
