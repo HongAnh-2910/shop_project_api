@@ -57,23 +57,5 @@ class BaseController extends Controller
         return response()->json($response, $status);
     }
 
-    /**
-     * @param $price
-     * @param $sale
-     *
-     * @return float|int
-     */
 
-    public function saleDiscountProduct($price , $sale = null)
-    {
-        if($sale)
-        {
-            $a = (100-$sale)/100;
-            return ceil($price * $a);
-        }else
-        {
-            return 0;
-        }
-
-    }
 }
