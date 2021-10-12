@@ -31,4 +31,13 @@ class Category extends Model
         return $this->hasMany('App\Category','parent_id');
     }
 
+    /**
+     * @return HasMany
+     */
+
+    public function product()
+    {
+        return $this->hasMany('App\Product' , 'category_id');
+    }
+
 }
