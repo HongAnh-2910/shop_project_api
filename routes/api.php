@@ -37,6 +37,7 @@ Route::group([
 
     Route::resource('category', 'api\CategoryController');
     Route::post('category/update/{id}', 'api\CategoryController@update');
+    Route::post('category/upload_file', 'api\CategoryController@uploadFile');
     Route::delete('category/delete/{id}', 'api\CategoryController@delete');
 
 //    route product

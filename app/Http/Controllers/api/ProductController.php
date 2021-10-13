@@ -21,6 +21,7 @@ class ProductController extends BaseController
      * ProductController constructor.
      *
      * @param ProductRepositories $product_repositories
+     * @param ProductService $product_service
      */
 
     public function __construct(ProductRepositories $product_repositories , ProductService $product_service)
@@ -119,7 +120,6 @@ class ProductController extends BaseController
             return $isUpdate ? $this->responseSuccess(null,
                 'Bạn đã cập nhật sản phẩm thành công') : $this->responseError(null, 'Bạn đã cập nhật sản phẩm thất bại',
                 self::STATUS_ERROR_WITH_MESSAGE);
-
     }
 
     /**
@@ -128,12 +128,12 @@ class ProductController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function destroy($id)
     {
         $isDelete = Product::find($id)->delete();
         return $isDelete ? $this->responseSuccess(null,
             'Bạn đã xóa sản phẩm thành công') : $this->responseError(null, 'Bạn đã xóa sản phẩm thất bại',
             self::STATUS_ERROR_WITH_MESSAGE);
-
     }
 }

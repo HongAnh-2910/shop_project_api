@@ -9,7 +9,11 @@ use App\Http\Requests\ValidateUpadteCategoryRequest;
 use App\Http\Resources\CategoryProduct;
 use App\Repositories\CategoryProduct\CategoryProductRepositories;
 use App\Services\CategoryProductService;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class CategoryController extends BaseController
 {
@@ -34,7 +38,7 @@ class CategoryController extends BaseController
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
 
     public function index(Request $request)
@@ -47,7 +51,7 @@ class CategoryController extends BaseController
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -56,12 +60,14 @@ class CategoryController extends BaseController
 
     /**
      * @param ValidateCategoryRequest $request
+     *
+     * @return JsonResponse
      */
 
     public function store(ValidateCategoryRequest $request)
     {
-
-        $thumbnail               = uploadImg($request, public_path() . '/uploads/');
+        $thumbnail = $this->uploadFile($request);
+//        $thumbnail               = uploadImg($request, public_path() . '/uploads/');
         $create_category_product = $this->category_product_repositories->create($thumbnail, $request);
 
         return $create_category_product ? $this->responseSuccess(null,
@@ -72,11 +78,23 @@ class CategoryController extends BaseController
     }
 
     /**
+     * @param Request $request
+     *
+     * @return Application|UrlGenerator|string
+     */
+
+    public function uploadFile(Request $request)
+    {
+        $thumbnail   = uploadImg($request, public_path() . '/uploads/');
+        return $thumbnail ? url('uploads/'.$thumbnail) : '';
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
 
     public function show($id)
@@ -90,7 +108,7 @@ class CategoryController extends BaseController
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -102,7 +120,7 @@ class CategoryController extends BaseController
      * @param ValidateUpadteCategoryRequest $request
      * @param $id
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
 
     public function update(ValidateUpadteCategoryRequest $request, $id)
@@ -134,8 +152,9 @@ class CategoryController extends BaseController
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
+
     public function destroy($id)
     {
         $destroy_item = $this->category_product_repositories->destroy($id);
@@ -143,4 +162,5 @@ class CategoryController extends BaseController
             'Bạn đã xóa vĩnh viễn thành công') : $this->responseError(null, 'Bạn đã xóa vĩnh viễn thất bại',
             self::STATUS_ERROR_WITH_MESSAGE);
     }
+
 }
